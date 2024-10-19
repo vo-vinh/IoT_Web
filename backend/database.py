@@ -1,24 +1,28 @@
-# Database setup and connections
-import influxdb_client, os, time
-from influxdb_client import InfluxDBClient, Point, WritePrecision
-from influxdb_client.client.write_api import SYNCHRONOUS
+import pymongo
+import settings
 
-TOKEN = "PgvJyudPK0Y8z4-dHuWVzQvwz9lDWqeXoxl4Uno_8IEcNHTDd9CdjusrtxpMv333Wo8KlMJ-5uMKuTF5DpODmA=="
-ORG = "terra"
-URL = "http://localhost:8086"
+class Database: 
+    def __init__(self):
+        self.client = pymongo.MongoClient(settings.MONGO_URI)
+        self.db = self.client[settings.DB_NAME]
+    
+    def insert_one(self, collection, data):
+        return self.db[collection].insert_one(data)
+    
+    def find(self, collection, query):
+        return self.db[collection].find(query)
+    
+    def find_one(self, collection, query):
+        return self.db[collection].find_one(query)
+    
+    def update(self, collection, query, data):
+        return self.db[collection].update_one(query, {'$set': data})
+        
+    def delete(self, collection, query):
+        self.db[collection].delete_one(query)
+        
+    def delete_many(self, collection, query):
+        self.db[collection].delete_many(query)
 
-write_client = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
-
-bucket="terra"
-
-write_api = write_client.write_api(write_options=SYNCHRONOUS)
-   
-for value in range(5):
-  point = (
-    Point("measurement1")
-    .tag("tagname1", "tagvalue1")
-    .field("field1", value)
-  )
-  write_api.write(bucket=bucket, org="terra", record=point)
-  time.sleep(1) # separate points by 1 second
-
+def get_database():
+    return Database()
