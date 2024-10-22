@@ -19,11 +19,14 @@ class BaseModel(PydanticBaseModel):
         res = db.insert_one(self.__class__.__name__.lower(), self.model_dump())
         self.id = str(res.inserted_id)
     
-    def update(self, db: Database):
-        db.update(self.__class__.__name__.lower(), {"_id": self._id}, self.model_dump())
+    def update(self, update_data, db: Database):
+        db.update(self.__class__.__name__.lower(), {"_id": self.id}, {"$set": update_data})
+        for key, value in update_data.items():
+            setattr(self, key, value)
+        return self
     
     def delete(self, db: Database):
-        db.delete(self.__class__.__name__.lower(), {"_id": self._id})
+        db.delete(self.__class__.__name__.lower(), {"_id": self.id})
         
     @classmethod
     def find(cls, query, db: Database):
