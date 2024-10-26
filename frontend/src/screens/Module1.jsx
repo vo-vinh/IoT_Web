@@ -3,7 +3,6 @@ import { tokens } from "../theme";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import LineChart from "../components/LineChart";
 import { useState, useEffect } from "react";
-import io from "socket.io-client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTemperatureThreeQuarters, faDroplet } from "@fortawesome/free-solid-svg-icons";
 import { mockData } from "../services/mockData";
@@ -25,10 +24,6 @@ const Module1 = () => {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState([]);
 
-  const pushLog = (log) => {
-    setLogs((prevLogs) => [log, ...prevLogs]);
-  };
-
   const fetchData = () => {
     setLoading(true);
     setTimeout(() => {
@@ -39,30 +34,6 @@ const Module1 = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const socket = io("http://localhost:8080");
-
-    const updateLog = (type) => (value) => {
-      setData((prevData) => ({ ...prevData, [type]: value }));
-      pushLog({
-        title: type.charAt(0).toUpperCase() + type.slice(1),
-        time: new Date().toLocaleTimeString(),
-        value: `${value}${type === "temperature" ? " °C" : type === "humidity" ? "%" : " mg/kg"}`,
-      });
-    };
-
-    socket.on("tempUpdate", ({ temp }) => updateLog("temperature")(temp));
-    socket.on("humidUpdate", ({ humid }) => updateLog("humidity")(humid));
-    socket.on("phUpdate", ({ ph }) => updateLog("ph")(ph));
-    socket.on("nitrogenUpdate", ({ nitrogen }) => updateLog("nitrogen")(nitrogen));
-    socket.on("phosphorusUpdate", ({ phosphorus }) => updateLog("phosphorus")(phosphorus));
-    socket.on("potassiumUpdate", ({ potassium }) => updateLog("potassium")(potassium));
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   return (

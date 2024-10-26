@@ -3,7 +3,6 @@ import { tokens } from "../theme";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import LineChart from "../components/LineChart";
 import { useState, useEffect } from "react";
-import io from "socket.io-client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTemperatureThreeQuarters, faDroplet, faSun, faWater } from "@fortawesome/free-solid-svg-icons";
 import { mockDataModule2 } from "../services/mockData";
@@ -22,10 +21,6 @@ const Module2 = () => {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState([]);
 
-  const pushLog = (log) => {
-    setLogs((prevLogs) => [log, ...prevLogs]);
-  };
-
   const fetchData = () => {
     setLoading(true);
     setTimeout(() => {
@@ -36,28 +31,6 @@ const Module2 = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const socket = io("http://localhost:8080");
-
-    const updateLog = (type) => (value) => {
-      setData((prevData) => ({ ...prevData, [type]: value }));
-      pushLog({
-        title: type.charAt(0).toUpperCase() + type.slice(1),
-        time: new Date().toLocaleTimeString(),
-        value: `${value}${type === "temp" ? " °C" : type === "humid" ? "%" : type === "light" ? " lux" : "%"}`,
-      });
-    };
-
-    socket.on("tempUpdate", ({ temp }) => updateLog("temp")(temp));
-    socket.on("humidUpdate", ({ humid }) => updateLog("humid")(humid));
-    socket.on("lightUpdate", ({ light }) => updateLog("light")(light));
-    socket.on("soilMoistureUpdate", ({ soilMoisture }) => updateLog("soilMoisture")(soilMoisture));
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   return (

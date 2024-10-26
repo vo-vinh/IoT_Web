@@ -32,3 +32,46 @@ export const mockDataModule2 = {
   light: "300",
   soilMoisture: "70",
 };
+
+export const mockModules = [
+  { 
+    key: 1, 
+    label: "Module 1", 
+    description: "Vị trí A", 
+    sensors: [
+      { id: 1, name: "Nhiệt độ", description: "Đo nhiệt độ", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'},
+      { id: 2, name: "Ánh sáng", description: "Đo nhiệt độ", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'}
+    ], 
+    isOpen: false 
+  },
+  { 
+    key: 2, 
+    label: "Module 2", 
+    description: "Vị trí B", 
+    sensors: [
+      { id: 3, name: "Nhiệt độ cao", description: "Đo nhiệt độ cao", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'},
+      { id: 4, name: "Ánh sáng cao", description: "Đo nhiệt độ cao", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'}
+    ], 
+    isOpen: false 
+  },
+  { 
+    key: 3, 
+    label: "Module 3", 
+    description: "Vị trí C", 
+    sensors: [
+      { id: 5, name: "Nhiệt độ", description: "Đo nhiệt độ", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'},
+      { id: 6, name: "Ánh sáng", description: "Đo nhiệt độ", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'}
+    ], 
+    isOpen: false 
+  },
+  { 
+    key: 4, 
+    label: "Module 4", 
+    description: "Vị trí D", 
+    sensors: [
+      { id: 7, name: "Nhiệt độ", description: "Đo nhiệt độ", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'},
+      { id: 8, name: "Ánh sáng", description: "Đo nhiệt độ", type: "Temp Sensor", value: '24°C', updateTime: '2024-10-25 10:30:00'}
+    ], 
+    isOpen: false 
+  },
+];
