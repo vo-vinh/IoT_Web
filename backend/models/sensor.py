@@ -2,7 +2,7 @@ from models.baseModel import BaseModel
 from typing import Optional
 from enum import Enum
 from datetime import datetime
-from bson import ObjectId
+from pydantic import Field
 
 class SensorType(str, Enum):
     # TODO: modify this to include all sensor types
@@ -15,4 +15,4 @@ class Sensor(BaseModel):
     description: Optional[str] = None
     type : SensorType
     last_active : Optional[datetime] = None
-    module_id : ObjectId
+    module_code_name : str

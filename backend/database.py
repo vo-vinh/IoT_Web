@@ -16,7 +16,7 @@ class Database:
         return self.db[collection].find_one(query)
     
     def update(self, collection, query, data):
-        return self.db[collection].update_one(query, {'$set': data})
+        return self.db[collection].update_one(query,data)
         
     def delete(self, collection, query):
         self.db[collection].delete_one(query)
