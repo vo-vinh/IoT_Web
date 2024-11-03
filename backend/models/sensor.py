@@ -5,10 +5,15 @@ from datetime import datetime
 from pydantic import Field
 
 class SensorType(str, Enum):
-    # TODO: modify this to include all sensor types
-    TEMPERATURE = "temperature"
     HUMIDITY = "humidity"
-    PRESSURE = "pressure"
+    TEMPERATURE = "temperature"
+    PH = "pH"
+    CONDUCTIVITY = "conductivity"
+    NITROGEN = "nitrogen"
+    PHOSPHORUS = "phosphorus"
+    POTASSIUM = "potassium"
+    LIGHT = "light"
+    SOIL_MOISTURE = "soilMoisture"
 
 class Sensor(BaseModel):
     name: str 

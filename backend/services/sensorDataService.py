@@ -48,11 +48,12 @@ class SensorDataService:
         if file.content_type != "text/csv":
             raise BadRequestException("File must be csv")
         
-        df = pd.read_csv(file.file)
+        df = pd.read_csv(file.file, header=0)
         # TODO: check format of csv file, header list 
         return df 
     
     def import_sensor_data(self, module_code_name : str, file: UploadFile = File(...)):
+        # TODO: return 400 not 422 if file is not valid
         df = self.__validate_sensor_data_file(file)
         for _,row in df.iterrows():
             sensor_data_obj = SensorData.model_validate({

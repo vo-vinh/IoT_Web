@@ -32,6 +32,7 @@ class SensorService:
         return SensorSerializer.model_validate(sensor_obj.model_dump())
     
     def update_sensor(self, sensor_id, sensor : UpdateSensorSerializer):
+        # TODO: validate unqiue name, type
         sensor_obj = Sensor.find({"_id": sensor_id}, self.db)
         sensor_obj = sensor_obj.update(sensor.model_dump(), self.db)
         return SensorSerializer.model_validate(sensor_obj.model_dump())

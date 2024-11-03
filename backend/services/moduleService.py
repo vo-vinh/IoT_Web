@@ -1,5 +1,4 @@
 from database import Database
-<<<<<<< Updated upstream
 from exception.badRequest import BadRequestException
 from exception.notFound import NotFoundException
 from models.module import Module
@@ -49,18 +48,4 @@ class moduleService:
         module_obj.sensor_lst = sensor_lst
         module_obj.id = str(module_obj.id)
         return ModuleSerializer.model_validate(module_obj.model_dump())
-=======
-from models.module import Module
-from serializers.moduleSerializer import CreateModuleSerializer, ModuleSerializer
-
-class ModuleService:
-    def __init__(self, db: Database):
-        self.db = db
-    
-    def create_module(self, module_serializer : CreateModuleSerializer):
-        #TODO : check unique name
-        module_obj = Module.model_validate_json(module_serializer.model_dump_json()) 
-        module_obj.save(self.db)
-        return ModuleSerializer.model_validate(module_obj.model_dump())
->>>>>>> Stashed changes
     

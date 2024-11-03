@@ -1,65 +1,142 @@
-import React from 'react';
-import { Box, Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Dialog, DialogTitle, DialogContent, TextField, DialogActions, 
+  Button, FormControl, InputLabel, Select, MenuItem, Typography  } from '@mui/material';
+import { axiosPrivate } from '../hooks/axios';
 
-const AddSensorDialog = ({ open, onClose, onAddSensor, newSensor, setNewSensor, newSensorDescription, setNewSensorDescription, newSensorType, setNewSensorType}) => {
+import SensorType from '../utils/sensorType';
+
+
+const AddSensorDialog = ({
+  open,
+  onClose,
+  sensorData,
+  setSensorData,
+  selectedModule,
+  setSelectedModule,
+  modules,
+  setModules,
+}) => {
+
+  const setData = (e) => {
+    setSensorData({...sensorData, [e.target.name]: e.target.value});
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(sensorData);
+    axiosPrivate.post(`module/${selectedModule.code_name}`, sensorData, {headers : {'Content-Type' : 'application/json'}})
+      .then(res => {
+        onClose();
+        setModules(modules.map(mod => {
+          if (mod.code_name === selectedModule.code_name) {
+            return {...mod, sensor_lst: [...mod.sensor_lst, res.data]};
+          }
+          return mod;
+        }));
+        setSensorData({
+          name: "",
+          description: "",
+          
+        })
+      })
+      .catch(err => {
+        console.log(err);
+        if (err.response.status === 400) {
+          setErrMsg(err.response.data);
+        }
+        else {
+          alert("something went wrong");
+        }
+        console.log(err);
+      }); 
+  }
+  const [errMsg, setErrMsg] = useState("");
+
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle sx={{ fontSize: '24px', fontWeight: 'bold'}}> Add New Sensor </DialogTitle>
+      <DialogTitle sx={{ fontSize: "24px", fontWeight: "bold" }}>
+        {" "}
+        Add New Sensor{" "}
+      </DialogTitle>
       <Box p="1px"></Box>
+
+      <form onSubmit={handleSubmit}>
       <DialogContent>
         <TextField
           label="Name"
           variant="outlined"
-          value={newSensor}
-          onChange={(e) => setNewSensor(e.target.value)}
+          value={sensorData.name}
+          name="name"
+          onChange={setData}
+          required= {true}
           fullWidth
           margin="dense"
-          sx={{ marginBottom: '24px', fontSize: '18px' }}
+          sx={{ marginBottom: "24px", fontSize: "18px" }}
           InputLabelProps={{
-            sx: { fontSize: '18px' }, 
+            sx: { fontSize: "18px" },
           }}
           InputProps={{
-            sx: { fontSize: '18px' },
+            sx: { fontSize: "18px" },
           }}
         />
         <TextField
           label="Description"
           variant="outlined"
-          value={newSensorDescription}
-          onChange={(e) => setNewSensorDescription(e.target.value)}
+          name="description"
+          value={sensorData.description}
+          onChange={setData}
+          required= {true}
           fullWidth
           margin="dense"
-          sx={{ marginBottom: '24px', fontSize: '18px' }}
+          sx={{ marginBottom: "24px", fontSize: "18px" }}
           InputLabelProps={{
-            sx: { fontSize: '18px' }, 
+            sx: { fontSize: "18px" },
           }}
           InputProps={{
-            sx: { fontSize: '18px' },
+            sx: { fontSize: "18px" },
           }}
         />
         <FormControl fullWidth variant="outlined">
-          <InputLabel sx={{ fontSize: '18px' }}>Type</InputLabel>
+          <InputLabel sx={{ fontSize: "18px" }}>Type</InputLabel>
           <Select
-            value={newSensorType}
-            onChange={(e) => setNewSensorType(e.target.value)}
+            value={sensorData.type || SensorType.temperature}
+            onChange={setData}
+            name="type"
+            required= {true}
             label="Type"
             margin="dense"
-            sx={{ marginBottom: '24px', fontSize: '18px' }}
+            sx={{ marginBottom: "24px", fontSize: "18px" }}
             InputProps={{
-              sx: { fontSize: '18px' },
+              sx: { fontSize: "18px" },
             }}
+            defaultValue={SensorType.temperature}
           >
-            <MenuItem value="Temperature">Temperature</MenuItem>
-            <MenuItem value="Humidity">Humidity</MenuItem>
-            <MenuItem value="Light">Light</MenuItem>
-            <MenuItem value="Soil">Soil</MenuItem>
+            {Object.keys(SensorType).map((key) => (
+              <MenuItem key={key} value={key}>
+                {SensorType[key]}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
+
+        {Object.keys(errMsg).length > 0 && (
+          <Box mt={2}>
+            <Typography color="error" sx={{marginLeft : "5px", fontSize : "16px"}}>
+              {errMsg}
+            </Typography>
+          </Box>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={onAddSensor} color="primary" disabled={!newSensor.trim() || !newSensorDescription.trim() || !newSensorType.trim()}>Add</Button>
+        <Button
+          color="primary"
+          type='submit'
+        >
+          Add
+        </Button>
       </DialogActions>
+      </form>
     </Dialog>
   );
 };

@@ -1,2 +1,2 @@
-MONGO_URI = 'mongodb+srv://henry:Password@cluster0.zz9j3qe.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+MONGO_URI = 'mongodb://localhost:27017/'
 DB_NAME = 'terra'

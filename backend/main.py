@@ -5,22 +5,25 @@ from exception.notFound import NotFoundException
 from bson.errors import InvalidId
 from controllers.userController import router as user_router
 from controllers.moduleController import router as module_router
-<<<<<<< Updated upstream
 from controllers.sensorController import router as sensor_router
 from controllers.sensorDataController import router as sensor_data_router
-=======
->>>>>>> Stashed changes
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 app.include_router(user_router)
 app.include_router(module_router)
-<<<<<<< Updated upstream
 app.include_router(sensor_router)
 app.include_router(sensor_data_router)
-=======
->>>>>>> Stashed changes
 
 @app.exception_handler(BadRequestException)
 async def bad_request_exception_handler(request, exc : BadRequestException):
@@ -44,4 +47,4 @@ async def bad_request_exception_handler(request, exc : InvalidId):
     )
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app, host = "0.0.0.0", port = 8000)
