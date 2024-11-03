@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 from datetime import datetime
 from typing import Optional, List
 from serializers.baseSerializer import BaseSerializer 
@@ -37,3 +38,26 @@ class UpdateModuleSerializer(BaseSerializer):
     description : Optional[str] = None
     longitute : Optional[float] = None
     latitude : Optional[float] = None
+=======
+from serializers.baseSerializer import BaseSerializer
+from pydantic import field_validator
+from exception.badRequest import BadRequestException
+from datetime import datetime
+from typing import Optional
+
+class CreateModuleSerializer(BaseSerializer):
+    name : str
+    description : str
+    longitute : float
+    latitute : float
+    
+
+class ModuleSerializer(BaseSerializer):
+    name : str
+    description : str
+    longitute : float
+    latitute : float
+    last_active : Optional[datetime]
+    id : str 
+    
+>>>>>>> Stashed changes

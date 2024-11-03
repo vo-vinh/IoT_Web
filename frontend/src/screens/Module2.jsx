@@ -1,6 +1,5 @@
-import { Box, Button, IconButton, Typography, useTheme, CircularProgress } from "@mui/material";
+import { Box, Button, Typography, useTheme, CircularProgress } from "@mui/material";
 import { tokens } from "../theme";
-import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import LineChart from "../components/LineChart";
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,7 +18,7 @@ const Module2 = () => {
   });
  
   const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState([]);
+  const [setLogs] = useState([]);
 
   const fetchData = () => {
     setLoading(true);
@@ -94,15 +93,12 @@ const Module2 = () => {
             alignItems="center"
           >
             <Typography 
-              variant="h5" 
+              variant="h3" 
               fontWeight="600" 
               color={colors.grey[100]}
             >
               Line chart
             </Typography>
-            <IconButton>
-              <DownloadOutlinedIcon sx={{ fontSize: "26px", color: colors.greenAccent[500] }} />
-            </IconButton>
           </Box>
           <Box 
             height="400px" 
@@ -132,55 +128,25 @@ const Module2 = () => {
             >
               Recent Logs
             </Typography>
-            <Button 
-              variant="contained" 
-              color="error" 
-              onClick={() => setLogs([])}
-            >
-              Clear Logs
-            </Button>
+            <Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  onClick={() => setLogs([])}
+                >
+                  Download Logs
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="error" 
+                  onClick={() => setLogs([])}
+                >
+                  Clear Logs
+                </Button>
+              </Box>
+            </Typography>
           </Box>
-
-          {logs.map((log, i) => (
-            <Box 
-              key={i} 
-              display="flex" 
-              justifyContent="space-between" 
-              alignItems="center" 
-              borderBottom={`4px solid ${colors.primary[500]}`} 
-              p="15px"
-            >
-              <Box 
-                sx={{ width: "30%" }}
-              >
-                <Typography 
-                  color={colors.greenAccent[500]} 
-                  variant="h5" 
-                  fontWeight="600"
-                >
-                  {log.title}
-                </Typography>
-              </Box>
-              <Box 
-                color={colors.grey[100]} 
-                sx={{ width: "30%" }}
-              >
-                {log.time}
-              </Box>
-              <Box 
-                sx={{ width: "40%", display: "flex", justifyContent: "flex-end" }}
-              >
-                <Box 
-                  backgroundColor={colors.greenAccent[500]} 
-                  p="5px 10px" 
-                  borderRadius="4px" 
-                  width="fit-content"
-                >
-                  {log.value}
-                </Box>
-              </Box>
-            </Box>
-          ))}
         </Box>
       </Box>
     </Box>

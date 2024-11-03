@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { tokens } from "../theme";
 import { Box, Typography, Button, useTheme } from '@mui/material';
-import { TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
-import { Download, Upload, Visibility  } from '@mui/icons-material';
 import AddModuleDialog from '../components/AddModuleDialog';
 import AddSensorDialog from '../components/AddSensorDialog';
 import EditModuleDialog from '../components/EditModuleDialog';
 import SensorDetailDialog from '../components/SensorDetailDialog';
+import ModuleInfoPanel from '../components/ModuleInfoPanel';
+
 import { mockModules } from "../services/mockData";
 
 
 const Dashboard = () => {
 
-  const theme = useTheme();
+  const theme  = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const [modules, setModules] = useState(mockModules);
@@ -23,8 +23,13 @@ const Dashboard = () => {
   const [openSensorDetailDialog, setOpenSensorDetailDialog] = useState(false); 
 
   const [newModule, setNewModule] = useState("");
-  const [newDescription, setNewDescription] = useState("")
+  const [newCodename, setNewCodename] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newLongitude, setNewLongitude,] = useState("");
+  const [newLatitude, setNewLatitude,] = useState("");
   const [newSensor, setNewSensor] = useState("");
+  const [newSensorDescription, setNewSensorDescription] = useState("");
+  const [newSensorType, setNewSensorType] = useState("");
   const [selectedModule, setSelectedModule] = useState("");
   const [selectedSensor, setSelectedSensor] = useState(""); 
 
@@ -32,10 +37,13 @@ const Dashboard = () => {
     if (newModule) {
       setModules(prevModules => [
         ...prevModules,
-        { key: newModule.toLowerCase().replace(/\s+/g, ''), label: newModule, description: newDescription, sensors: [], isOpen: false }
+        { key: newModule.toLowerCase().replace(/\s+/g, ''), name: newModule, code_name: newCodename, description: newDescription, longitude: newLongitude, latitude: newLatitude, sensors: [], isOpen: false }
       ]);
       setNewModule("");
+      setNewCodename("");
       setNewDescription("");
+      setNewLongitude("");
+      setNewLatitude()
       setOpenModuleDialog(false);
     }
   };
@@ -47,13 +55,15 @@ const Dashboard = () => {
           module.key === selectedModule
             ? { 
                 ...module, 
-                sensors: [...module.sensors, { name: newSensor }]
+                sensors: [...module.sensors, { name: newSensor, description: newSensorDescription, type: newSensorType }]
               }
             : module
         )
       );
       
       setNewSensor("");
+      setNewSensorDescription("");
+      setNewSensorType("");
       setOpenSensorDialog(false);
     }
   };
@@ -67,11 +77,6 @@ const Dashboard = () => {
           : module
       )
     );
-  };
-
-  const handleOpenDetailDialog = (module) => {
-    setSelectedModule(module);
-    setOpenDetailDialog(true);
   };
 
   const handleEditModule = () => {
@@ -132,15 +137,22 @@ const Dashboard = () => {
 
   return (
     <Box m="40px">
-      <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap="50px" >
-        <Box gridColumn={{ xs: "span 12", sm: "span 6", md: "span 4" }}>
+      <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap="20px" >
+        <Box gridColumn={{ xs: "span 12", sm: "span 5", md: "span 5" }}>
           <Box display="flex" flexDirection="column" backgroundColor={colors.primary[400]} borderRadius={1} boxShadow={1} p={2}>
           < Typography variant="h2" gutterBottom>Modules List</Typography>
-            {modules.map(({ key, label, sensors, isOpen }) => (
+            {modules.map(({ key, name, sensors, isOpen }) => (
               <Box key={key} sx={{ marginBottom: "16px" }}>
-                <Typography variant="h3" fontWeight="bold" onClick={() => handleToggleModule(key)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ marginRight: '10px' }}>{isOpen ? '-' : '+'}</span>
-                  {label}
+                <Typography
+                variant="h3"
+                fontWeight="bold"
+                onClick={() => { 
+                  setSelectedModule(mockModules.find(mod => mod.key === key)); // Chọn module khi nhấp vào
+                  handleToggleModule(key); 
+                }}
+                sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              ><span style={{ marginRight: '10px' }}>{isOpen ? '-' : '+'}</span>
+                  {name}
                 </Typography>
                 {isOpen && (
                   <Box sx={{ paddingLeft: "20px" }}>
@@ -155,9 +167,6 @@ const Dashboard = () => {
                       </Typography>
                     ))}
                     <Button onClick={() => { setOpenSensorDialog(true); setSelectedModule(key); }} sx={{ fontSize: "20px", color: "blue", marginTop: '1px' }}>+</Button>
-                    <Button onClick={() => handleOpenDetailDialog(modules.find(mod => mod.key === key))} sx={{ fontSize: "16px", color: "blue", marginTop: '10px' }}>
-                      <Visibility/> 
-                    </Button>
                   </Box>
                 )}
               </Box>
@@ -165,45 +174,50 @@ const Dashboard = () => {
             <Button variant="contained" color="primary" onClick={() => setOpenModuleDialog(true)} sx={{ fontSize: "20px", color: "white"}}>Add New Module</Button>
           </Box>
         </Box>
-            {/* Data Table */}
-            <Box gridColumn={{ xs: "span 12", sm: "span 6", md: "span 8" }} backgroundColor={colors.primary[400]} p={2}>
-              <Typography variant="h5" gutterBottom>Data Table</Typography>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Module Name</TableCell>
-                      <TableCell>Sensor Name</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Sensor Value</TableCell>
-                      <TableCell>Update Time</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {modules.map((module) =>
-                      module.sensors.map((sensor, index) => (
-                        <TableRow key={`${module.key}-${index}`}>
-                          <TableCell>{module.label}</TableCell>
-                          <TableCell>{sensor.name}</TableCell>
-                          <TableCell>{sensor.description}</TableCell>
-                          <TableCell>{sensor.value}</TableCell>
-                          <TableCell>{sensor.updateTime}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              
-              <Box display="flex" justifyContent="space-between" mt={2}>
-                <Button variant="contained" color="secondary" onClick={handleDownload}>
-                  <Download />
-                </Button>
-                <Button variant="contained" color="secondary" onClick={handleImport}> 
-                  <Upload />
-                </Button>
-              </Box>
-            </Box>
+
+
+        <Box gridColumn={{ xs: "span 12", sm: "span 6", md: "span 6" }} backgroundColor={colors.primary[400]} borderRadius={1} boxShadow={1} p={2}>
+          <ModuleInfoPanel 
+            selectedModule={selectedModule} 
+            setSelectedModule={setSelectedModule} 
+            onEditModule={handleEditModule} 
+            onDeleteModule={handleDeleteModule}
+          />
+        </Box>
+
+
+        <Box gridColumn={{ xs: "span 2", sm: "span 1", md: "span 1" }} display="flex" justifyContent="flex-end" mb={2}>
+          <Box display="flex" flexDirection="column" alignItems="flex-end">
+            <Button 
+              variant="contained" 
+              color="error"
+              onClick={handleDownload} 
+              sx={{ 
+                marginBottom: '20px',
+                width: '150px',
+                fontSize: '15px',
+                color: 'white',
+                fontWeight: "bold"
+              }} 
+            >
+              Export All Data
+            </Button>
+            <Button 
+              variant="contained" 
+              color= "primary" 
+              onClick={handleImport}
+              sx={{ 
+                width: '150px', 
+                fontSize: '15px', 
+                color: 'white',
+                fontWeight: "bold"
+              }}
+            >
+              Import All Data
+            </Button>
+          </Box>
+        </Box>
+
       </Box>
 
       {/* Dialogs */}
@@ -213,8 +227,15 @@ const Dashboard = () => {
         onAddModule={handleAddModule} 
         newModule={newModule} 
         setNewModule={setNewModule}
+        newCodename={newCodename} 
+        setNewCodename={setNewCodename}
         newDescription={newDescription} 
         setNewDescription={setNewDescription} 
+        newLongitude={newLongitude}
+        setNewLongitude={setNewLongitude}
+        newLatitude={newLatitude}
+        setNewLatitude={setNewLatitude}
+
       />
       <AddSensorDialog 
         open={openSensorDialog} 
@@ -222,6 +243,10 @@ const Dashboard = () => {
         onAddSensor={handleAddSensor} 
         newSensor={newSensor} 
         setNewSensor={setNewSensor}
+        newSensorDescription={newDescription} 
+        setNewSensorDescription={setNewDescription} 
+        newSensorType={newSensorType}
+        setNewSensorType={setNewSensorType}
       />
       <EditModuleDialog
         open={openDetailDialog}
@@ -238,6 +263,7 @@ const Dashboard = () => {
         sensor={selectedSensor} 
         onSave={handleSaveSensor}
         onDelete={handleDeleteSensor}
+        modules={mockModules}
       />
     </Box>
   );

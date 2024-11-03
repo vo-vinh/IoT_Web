@@ -14,11 +14,11 @@ const EditModuleDialog = ({ open, onClose, onEditModule, onDeleteModule, selecte
         <TextField
           label="Name"
           variant="outlined"
-          value={selectedModule?.label || ''}
+          value={selectedModule?.name || ''}
           onChange={(e) =>
             setSelectedModule((prev) => ({
               ...prev,
-              label: e.target.value,
+              name: e.target.value,
             }))
           }
           fullWidth

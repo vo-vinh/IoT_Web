@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 from typing import Optional, List
 from models.baseModel import BaseModel
 from models.sensor import Sensor
@@ -14,3 +15,15 @@ class Module(BaseModel):
     
     class Config:
         arbitrary_types_allowed = True
+=======
+from models.baseModel import BaseModel
+from datetime import datetime
+from typing import Optional
+
+class Module(BaseModel):
+    name : str
+    description : str
+    longitute : float
+    latitute : float
+    last_active : Optional[datetime] = None
+>>>>>>> Stashed changes
