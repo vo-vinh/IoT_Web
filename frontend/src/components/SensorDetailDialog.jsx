@@ -18,12 +18,13 @@ const SensorDetailDialog = ({
   };
 
   useEffect(() => {
+    setErrMsg("");
     setSensorData({
       name: selectedSensor?.name || "",
       description: selectedSensor?.description || "",
       type: selectedSensor?.type || "",
     });
-  }, [selectedSensor]);
+  }, [selectedSensor, setSensorData]);
 
   const [errMsg, setErrMsg] = useState("");
 
@@ -52,7 +53,7 @@ const SensorDetailDialog = ({
     }).catch((err) => {
       console.log(err);
       if (err.response) {
-        setErrMsg(err.response.data);
+        setErrMsg(err.response.data.message);
       } else {
         setErrMsg("Something went wrong");
       }

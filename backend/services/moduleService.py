@@ -1,3 +1,5 @@
+from models.logModel import LogModel
+from models.sensorData import SensorData
 from database import Database
 from exception.badRequest import BadRequestException
 from exception.notFound import NotFoundException
@@ -5,6 +7,7 @@ from models.module import Module
 from models.sensor import Sensor
 from serializers.moduleSerializer import CreateModuleSerializer, ModuleSerializer, UpdateModuleSerializer
 from bson.json_util import dumps
+from services.sensorService import SensorService
 
 class moduleService:
     def __init__(self, db: Database):
@@ -32,8 +35,19 @@ class moduleService:
         module_obj = Module.find({"code_name": module_code_name}, self.db)
         if not module_obj:
             raise NotFoundException("Module does not exist")
+        sensor_service = SensorService(self.db)
+        sensor_lst = Sensor.find_all({"module_code_name": module_code_name}, self.db)
+        # delete all sensors in the module
+        for sensor in sensor_lst:
+            sensor_service.delete_sensor(sensor.id)
+            # delete data 
+            sensor_data_lst = SensorData.find_all({"sensor_type": sensor.type, "module_code_name": module_code_name}, self.db)
+            for sensor_data in sensor_data_lst:
+                sensor_data.delete(self.db)
+        # delete log 
+        LogModel.delete_all(self.db, {"module_code_name": module_code_name})
         module_obj.delete(self.db)
-        return True
+        return True 
     
     def get_all_modules(self):
         modules = Module.find_all({}, self.db)

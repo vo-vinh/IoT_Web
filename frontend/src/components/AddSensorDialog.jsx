@@ -23,12 +23,14 @@ const AddSensorDialog = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(sensorData);
     axiosPrivate.post(`module/${selectedModule.code_name}`, sensorData, {headers : {'Content-Type' : 'application/json'}})
       .then(res => {
         onClose();
         setModules(modules.map(mod => {
           if (mod.code_name === selectedModule.code_name) {
+            if (!mod.sensor_lst) {
+              return {...mod, sensor_lst: [res.data]};
+            }
             return {...mod, sensor_lst: [...mod.sensor_lst, res.data]};
           }
           return mod;
@@ -37,12 +39,12 @@ const AddSensorDialog = ({
           name: "",
           description: "",
           
-        })
+        }) 
       })
       .catch(err => {
         console.log(err);
-        if (err.response.status === 400) {
-          setErrMsg(err.response.data);
+        if (err.response?.status === 400) {
+          setErrMsg(err.response.data.message);
         }
         else {
           alert("something went wrong");

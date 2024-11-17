@@ -1,39 +1,130 @@
-import { Box, Button, Typography, useTheme, CircularProgress } from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import LineChart from "../components/LineChart";
-import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTemperatureThreeQuarters, faDroplet } from "@fortawesome/free-solid-svg-icons";
-import { mockData } from "../services/mockData";
+import { useState, useEffect, useRef, useCallback } from "react";
+import SensorBox from "../components/SensorBox";
+import { useLocation } from "react-router-dom";
+import {axiosPrivate, wsUrl} from "../hooks/axios";
+import sensorMapping from "../utils/sensorMapping";
 
 const Module1 = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
-  const [data, setData] = useState({
-    temperature: "0",
-    humidity: "0",
-    conductivity: "0",
-    ph: "0",
-    nitrogen: "0",
-    phosphorus: "0",
-    potassium: "0",
-  });
-
+  const location = useLocation();
+  const [labelData, setLabelData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [setLogs] = useState([]);
+  const [logs, setLogs] = useState([]);
 
-  const fetchData = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setData(mockData);
-      setLoading(false);
-    }, 1000); 
-  };
+  const socketRef = useRef(null);
+
+  const connectSocket = useCallback(() => {
+    socketRef.current = new WebSocket(wsUrl + location.pathname);
+    socketRef.current.onopen = () => {
+      console.log("connected");
+    }
+    socketRef.current.onmessage = (e) => {
+      let data = JSON.parse(e.data);
+      console.log(data);
+  
+      setLabelData((prevLabelData) => {
+        let newLabelData = prevLabelData.map((label) => {
+          if (label.key === data["sensor_type"]) {
+            return { ...label, value: data["value"] };
+          }
+          return label;
+        });
+        return newLabelData;
+      });
+    };
+    socketRef.current.onclose = () => {
+      console.log("disconnected");
+    }
+
+    socketRef.current.onerror = (e) => {
+      console.log(e);
+    }
+
+  }, [location.pathname]);
+
+  const disconnectSocket = () => {
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+    }
+  }
 
   useEffect(() => {
-    fetchData();
+    const handleTabClose = () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleTabClose);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleTabClose);
+      disconnectSocket();
+    };
   }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    axiosPrivate.get(`/module${location.pathname}`).then((res) => {
+      let labelDataList = [];
+      for (let sensor of res.data.sensor_lst) {
+        let obj = {
+          key : sensor["type"],
+          label : sensor["name"],
+          value : sensor["value"]
+        }
+        labelDataList.push(obj);
+      }
+      setLabelData(labelDataList);
+      setLoading(false);
+      connectSocket();
+    }).catch((error) => {
+      console.log(error);
+    });
+
+    // get logs 
+    axiosPrivate.get(`/log${location.pathname}`).then((res) => {
+      let logList = [];
+      for (let log of res.data) {
+        var time = new Date(log["timestamp"]);
+        logList.push(`${time.getFullYear()}/${time.getMonth() - 1}/${time.getDate()} ${time.getHours()}:${time.getMinutes()} ${log["sensor_name"]}: ${log["value"]}${sensorMapping[log["sensor_type"]].unit || ""}`);
+      }
+      setLogs(logList);
+    }
+    ).catch((error) => {
+      console.log(error);
+    });
+
+  }, [location.pathname]);
+
+  const handleDownloadLogs = () => {
+    axiosPrivate.get(`/log/download${location.pathname}`, {responseType: 'blob'}).then((res) => {
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'logs.csv');
+      document.body.appendChild(link);
+      link.click();
+    }
+    ).catch((error) => {
+      console.log(error);
+    });
+  }
+
+  const handleClearLogs = () => {
+    axiosPrivate.delete(`/log${location.pathname}`).then((res) => {
+      setLogs([]);
+    }
+    ).catch((error) => {
+      console.log(error);
+    });
+
+  }
 
   return (
     <Box m="20px">
@@ -43,48 +134,7 @@ const Module1 = () => {
         gridAutoRows="140px"
         gap="20px"
       >
-        {[
-          { key: "temperature", icon: faTemperatureThreeQuarters, label: "Temperature" },
-          { key: "humidity", icon: faDroplet, label: "Humidity" },
-          { key: "ph", label: "pH" },
-          { key: "conductivity", label: "Conductivity" },
-          { key: "nitrogen", label: "Nitrogen" },
-          { key: "phosphorus", label: "Phosphorus" },
-          { key: "potassium", label: "Potassium" },
-        ].map(({ key, icon, label }, index) => (
-          <Box
-            key={key}
-            gridColumn={{ xs: "span 12", sm: "span 6", md: "span 4" }}
-            backgroundColor={colors.primary[400]}
-            display="flex"
-            alignItems="center"
-            justifyContent="space-around"
-            flexDirection="column"
-          >
-            <h1 
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              {icon && 
-                <span 
-                  style={{ marginRight: "0.5em" }}><FontAwesomeIcon icon={icon} />
-                </span>
-              }
-              {label}
-            </h1>
-            {loading ? (
-              <CircularProgress color="secondary" size={24} />
-            ) : (
-              <Typography 
-                variant="h3" 
-                fontWeight="bold" 
-                color={colors.greenAccent[500]}
-              >
-                {data[key]} {key === "temperature" ? "°C" : key === "humidity" ? "%" : " mg/kg"}
-              </Typography>
-            )}
-          </Box>
-        ))}
-        
+        <SensorBox labelData = {labelData} loading = {loading} />
         <Box 
           gridColumn="span 8" 
           gridRow="span 3" 
@@ -138,20 +188,32 @@ const Module1 = () => {
                 <Button 
                   variant="contained" 
                   color="primary" 
-                  onClick={() => setLogs([])}
+                  onClick={() => handleDownloadLogs()}
                 >
                   Download Logs
                 </Button>
                 <Button 
                   variant="contained" 
                   color="error" 
-                  onClick={() => setLogs([])}
+                  onClick={() => handleClearLogs()}
                 >
                   Clear Logs
                 </Button>
               </Box>
             </Typography>
           </Box>
+          <Box 
+            display="flex" 
+            flexDirection="column" 
+            p="15px" 
+            gap="10px"
+          >
+            {logs.map((log, index) => (
+              <Typography fontSize={20} key={index} color={colors.grey[100]}>
+                {log}
+              </Typography>
+            ))}
+            </Box>
         </Box>
       </Box>
     </Box>

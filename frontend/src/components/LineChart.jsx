@@ -3,54 +3,77 @@ import { Line } from "@nivo/line";
 import { useTheme, TextField, Button, Box, MenuItem } from "@mui/material";
 import { tokens } from "../theme";
 import { mockTemperature, mockHumidity } from "../services/mockData";
+import { axiosPrivate } from "../hooks/axios";
+import { useLocation } from "react-router-dom";
+import lineColor from "../utils/lineColor";
 
 const LineChart = ({ isDashboard = false }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const location = useLocation();
 
   const [lineData, setLineData] = useState([]);
+  const [sensorData, setSensorData] = useState({});
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [selectedSensors, setSelectedSensors] = useState(["Temperature", "Humidity"]);
+  const [selectedSensors, setSelectedSensors] = useState(new Set());
 
-  const availableSensors = ["Temperature", "Humidity"];
+  const [availableSensors, setAvailableSensors] = useState(new Set());
 
   useEffect(() => {
-    // Lọc dữ liệu theo ngày và sensor đã chọn
-    const filteredTempData = mockTemperature.filter(item => {
-      const date = new Date(item.x);
-      return (startDate ? date >= new Date(startDate) : true) &&
-             (endDate ? date <= new Date(endDate) : true);
+    var selectedSensors = new Set();
+    var availableSensors = new Set();
+    axiosPrivate.get("/sensor-data", { params: { module_code_name: location.pathname.slice(1, location.pathname.length )} }).then((res) => {
+      var result = {};
+      for (let sensorData of res.data) {
+        var date = new Date(sensorData["timestamp"]);
+        var dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        if (sensorData["sensor_type"] in result) {
+          let last_data = result[sensorData["sensor_type"]][result[sensorData["sensor_type"]].length - 1];
+          if (last_data.x === dateStr) {
+            result[sensorData["sensor_type"]][result[sensorData["sensor_type"]].length - 1].y += sensorData["value"];
+          }
+          else {
+            result[sensorData["sensor_type"]].push({ x: dateStr, y: sensorData["value"] });
+          }
+        } else {
+          result[sensorData["sensor_type"]] = [{ x: dateStr, y: sensorData["value"] }];
+          selectedSensors.add(sensorData["sensor_type"]);
+          availableSensors.add(sensorData["sensor_type"]);
+        }
+      }
+      setSensorData(result);
+      setSelectedSensors(selectedSensors);
+      setAvailableSensors(availableSensors);
+      var tempLineData = Object.entries(result).map(([key, value]) => {
+        return {
+          id: key,
+          color: lineColor[key],
+          data: value,
+        }
+      })
+      setLineData(tempLineData);
+      console.log(result);
+    }).catch((error) => {
+      console.log(error);
     });
-
-    const filteredHumidData = mockHumidity.filter(item => {
-      const date = new Date(item.x);
-      return (startDate ? date >= new Date(startDate) : true) &&
-             (endDate ? date <= new Date(endDate) : true);
-    });
-
-    // Xây dựng dữ liệu biểu đồ dựa trên các sensor được chọn
-    const newLineData = [];
-    if (selectedSensors.includes("Temperature")) {
-      newLineData.push({
-        id: "Temperature",
-        color: tokens("dark").greenAccent[500],
-        data: filteredTempData,
-      });
-    }
-    if (selectedSensors.includes("Humidity")) {
-      newLineData.push({
-        id: "Humidity",
-        color: tokens("dark").blueAccent[300],
-        data: filteredHumidData,
-      });
-    }
-
-    setLineData(newLineData);
-  }, [startDate, endDate, selectedSensors]);
+  }, [location]);
 
   const handleFilter = () => {
-    setLineData(lineData);
+     var tempLineData = [];
+      for (let sensor of Array.from(selectedSensors)) {
+        var data = sensorData[sensor].filter(item => {
+          const date = new Date(item.x);
+          return (startDate ? date >= new Date(startDate) : true) &&
+                 (endDate ? date <= new Date(endDate) : true);
+        });
+        tempLineData.push({
+          id: sensor,
+          color: lineColor[sensor],
+          data: data,
+        });
+      }
+      setLineData(tempLineData);
   };
 
   return (
@@ -144,12 +167,12 @@ const LineChart = ({ isDashboard = false }) => {
         <TextField
           select
           label="Select Sensors"
-          value={selectedSensors}
-          onChange={(e) => setSelectedSensors(e.target.value)}
+          value={Array.from(selectedSensors)}
+          onChange={(e) => setSelectedSensors((prev) => new Set(e.target.value))}
           SelectProps={{ multiple: true }}
           variant="outlined"
         >
-          {availableSensors.map((sensor) => (
+          {Array.from(availableSensors).map((sensor) => (
             <MenuItem key={sensor} value={sensor}>
               {sensor}
             </MenuItem>

@@ -64,8 +64,19 @@ const Dashboard = () => {
   };
 
   const handleDownload = () => {
-    // Logic to download data as CSV or JSON can be added here
-    console.log("Download data");
+    axiosPrivate.get("/sensor-data/export").then((res) => {
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'sensor-data.csv');
+      document.body.appendChild(link);
+      link.click();
+    }
+    ).catch((err) => {
+      console.log(err);
+      alert("Something went wrong");
+    }
+    );
   };
 
   const handleClickModule = (module) => {

@@ -25,7 +25,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
   );
 };
 
-const Sidebar = () => {
+const Sidebar = ({module_lst}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm")); 
@@ -114,20 +114,18 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-            <Item
-              title="Module 1"
-              to="/module1"
-              icon={<LandscapeIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Module 2"
-              to="/module2"
-              icon={<LandscapeIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+            {module_lst && module_lst.map((module, id) => {
+              return (
+                <Item
+                  key={id}
+                  title={module.friendly_name}
+                  to={`/${module.code_name}`}
+                  icon={<LandscapeIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              );
+            })}
           </Box>
         </Menu>
       </ProSidebar>

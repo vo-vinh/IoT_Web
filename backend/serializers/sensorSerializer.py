@@ -11,6 +11,7 @@ class SensorSerializer(BaseSerializer):
     description: Optional[str] = None
     type : SensorType
     last_active : Optional[datetime] = None
+    value : Optional[float] = 0.0
     module_code_name : str
     
 

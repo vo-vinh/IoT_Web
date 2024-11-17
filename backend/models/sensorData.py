@@ -3,6 +3,7 @@ from database import Database
 from models.baseModel import BaseModel
 from datetime import datetime
 from models.sensor import SensorType
+from pymongo import DESCENDING
 
 class SensorData(BaseModel):
     value: float
@@ -12,7 +13,7 @@ class SensorData(BaseModel):
     
     @classmethod
     def find_all(cls, query, db: Database):
-        documents = db.find(cls.get_collection_name(), query)
+        documents = db.find(cls.get_collection_name(), query).sort("timestamp", DESCENDING)
         document_lst = []
         for document in documents:
             document["_id"] = str(document["_id"])

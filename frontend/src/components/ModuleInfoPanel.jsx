@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { axiosPrivate } from '../hooks/axios';
 import DeleteModuleDialog from './DeleteModuleDialog';
+import NotificationDialog from './NotificationDialog';
 
 const ModuleInfoPanel = ({ selectedModule, setSelectedModule, modules, setModules }) => {
 
@@ -15,6 +16,10 @@ const ModuleInfoPanel = ({ selectedModule, setSelectedModule, modules, setModule
 
   const [open, setOpen] = useState(false);
   const inputFile = useRef(null);
+
+  const [openNotification, setOpenNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationType, setNotificationType] = useState("");
 
   useEffect(() => {
     setSensorData({
@@ -78,12 +83,14 @@ const ModuleInfoPanel = ({ selectedModule, setSelectedModule, modules, setModule
         formData.append('file', file);
         axiosPrivate.post(`/sensor-data/import/${selectedModule.code_name}`, formData)
         .then((res) => {
-          // TODO: add dialog success here
-          alert("Import data successfully");
+          setNotificationMessage("Import data successfully");
+          setNotificationType("success");
+          setOpenNotification(true);
         }).catch((err) => {
           console.log(err);
-          // TODO : change alert to dialog error
-          alert("Something went wrong");
+          setNotificationMessage(err.response.data.message);
+          setNotificationType("error");
+          setOpenNotification(true);
         }
         );
       }
@@ -271,6 +278,13 @@ const ModuleInfoPanel = ({ selectedModule, setSelectedModule, modules, setModule
       />
 
     <input type='file' id='importFile' ref={inputFile} style={{display: 'none'}}/>
+
+    <NotificationDialog
+      open={openNotification}
+      setOpen={setOpenNotification}
+      message={notificationMessage}
+      dialogType={notificationType}
+    />
     </Box>
   );
 };

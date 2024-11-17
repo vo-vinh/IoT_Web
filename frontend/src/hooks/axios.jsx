@@ -9,3 +9,5 @@ export default axios.create({
 export const axiosPrivate = axios.create({
   baseURL: BASE_URL,
 });
+
+export const wsUrl = "ws://localhost:8000/ws";

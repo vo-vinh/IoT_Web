@@ -72,6 +72,8 @@ class BaseModel(PydanticBaseModel):
         for document in documents:
             document["_id"] = str(document["_id"])
             document["created_at"] = document["created_at"].isoformat()
+            if (document.get("last_active")):
+                document["last_active"] = document["last_active"].isoformat()
             document_lst.append(document)
         return [cls.model_validate_json(dumps(document)) for document in document_lst]
         
